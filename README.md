@@ -20,15 +20,15 @@
   <li><strong>Clone this repository</strong> or download the project files:</li>
 </ol>
 
-<pre><code>git clone https://github.com/your-username/connect4-ai.git
-cd connect4-ai
+<pre><code>git clone https://github.com/Ty-Watson/Connect-4-Agent
+cd connect-4-agent
 </code></pre>
 
 <ol start="2">
   <li><strong>Run the main Python script:</strong></li>
 </ol>
 
-<pre><code>python connect4.py
+<pre><code>python3 connect4.py
 </code></pre>
 
 <hr>
