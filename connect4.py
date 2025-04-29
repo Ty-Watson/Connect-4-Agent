@@ -53,22 +53,22 @@ def draw_board(board):
 
 
 def draw_piece(board,row, col, turn, animate=False):
-    color = RED if turn == PLAYER else YELLOW  # Assign color based on turn
+    color = RED if turn == PLAYER else YELLOW 
     
-    # Animation: gradually move the piece down
+    # animation: gradually move the piece down
     if animate:
-        for y in range(0, (row + 1) * SQUARESIZE, 5):  # Adjust step size for smoothness
-            # Redraw the board to prevent erasing existing pieces
+        for y in range(0, (row + 1) * SQUARESIZE, 5): 
+            # redraw the board to prevent erasing existing pieces
             draw_board(board)
             
-            # Draw the dropping piece at the current y-coordinate
+            # draw the dropping piece at the current y coordinate
             pygame.draw.circle(screen, color, 
                                (int(col * SQUARESIZE + SQUARESIZE / 2), 
                                 int(y + SQUARESIZE / 2)), RADIUS)
             pygame.display.update()
-            pygame.time.wait(30)  # Adjust speed here for faster/slower drop
+            pygame.time.wait(30) 
 
-    # Draw the piece at its final position
+    # draw the piece at its final position
     pygame.draw.circle(screen, color, 
                        (int(col * SQUARESIZE + SQUARESIZE / 2), 
                         int((row + 1) * SQUARESIZE + SQUARESIZE / 2)), RADIUS)
@@ -76,31 +76,32 @@ def draw_piece(board,row, col, turn, animate=False):
 
 
 def draw_win_message(winner):
-    pygame.draw.rect(screen, BLACK, (0, 0, WIDTH, SQUARESIZE))  # Clear the top area
+     # clear the top area
+    pygame.draw.rect(screen, BLACK, (0, 0, WIDTH, SQUARESIZE)) 
     text = f"{winner} WINS!!!"
     label = myfont.render(text, True, YELLOW if winner == "AI" else RED)
-    screen.blit(label, (40, 10))  # Position the message at the top
+    #draw at top of screen
+    screen.blit(label, (40, 10)) 
     pygame.display.update()
-    pygame.time.wait(3000)  # Pause to let the player see the message
+    pygame.time.wait(3000)
 
 def highlight_column(col, color):
     pygame.draw.rect(screen, color, (col * SQUARESIZE, 0, SQUARESIZE, SQUARESIZE))
     pygame.display.update()
 
 def visualize_move_evaluation(col, score):
-    # Highlight the column being evaluated
+    # highlight the column being evaluated
     highlight_column(col, (0, 255, 0))
-    # Display the score above the column
+    # display the score above the column
     label = myfont.render(str(score), True, (255, 255, 255))
     screen.blit(label, (col * SQUARESIZE + 10, 10))
     pygame.display.update()
-    #pygame.time.wait(100)  # Pause to show the evaluation
 
 
 def get_next_open_row_in_column(board, col_picked):
-    # Start from the bottom row, stops at 0(does not include -1), decrements by one
+    # start from the bottom row, stops at 0(does not include -1), decrements by one
     for row in range(ROWS-1, -1, -1):  
-        if board[row][col_picked] == 0: # Check if the slot is empty
+        if board[row][col_picked] == 0: # check if the slot is empty
             return row  
     print("NO OPEN ROW AVAILABLE")
     return -1
@@ -122,8 +123,8 @@ def drop_move(board, col_picked, turn):
     open_row = get_next_open_row_in_column(board, col_picked)
     if(open_row != -1):
         board[open_row][col_picked] = turn  # Place the move (1 for player, 2 for AI)
-        return True # Move was successfully placed
-    return False # Column is full, move not placed
+        return True # move was successfully placed
+    return False # column is full, move not placed
 
 #checks to see if a piece can be placed in a column
 def get_valid_columns(board):
@@ -186,61 +187,59 @@ def switch_turn(turn):
 def score_position(board, piece):
     score = 0
 
-    # Score centre column
+    # score centre column
     centre_array = [int(i) for i in list(board[:, COLS // 2])]
     centre_count = centre_array.count(piece)
     score += centre_count * 3
 
-    # Score horizontal positions
+    # score horizontal positions
     for r in range(ROWS):
         row_array = [int(i) for i in list(board[r, :])]
         for c in range(COLS - 3):
-            # Create a horizontal window of 4
+            # create a horizontal window of 4
             window = row_array[c:c + WINDOW_LENGTH]
             score += evaluate_window(window, piece)
 
-    # Score vertical positions
+    # score vertical positions
     for c in range(COLS):
         col_array = [int(i) for i in list(board[:, c])]
         for r in range(ROWS - 3):
-            # Create a vertical window of 4
+            # create a vertical window of 4
             window = col_array[r:r + WINDOW_LENGTH]
             score += evaluate_window(window, piece)
 
-    # Score positive diagonals
+    # score positive diagonals
     for r in range(ROWS - 3):
         for c in range(COLS - 3):
-            # Create a positive diagonal window of 4
+            # create a positive diagonal window of 4
             window = [board[r + i][c + i] for i in range(WINDOW_LENGTH)]
             score += evaluate_window(window, piece)
 
-    # Score negative diagonals
+    # Ssore negative diagonals
     for r in range(ROWS - 3):
         for c in range(COLS - 3):
-            # Create a negative diagonal window of 4
+            # create a negative diagonal window of 4
             window = [board[r + 3 - i][c + i] for i in range(WINDOW_LENGTH)]
             score += evaluate_window(window, piece)
 
     return score
 def evaluate_window(window, piece):
     score = 0
-    # Switch scoring based on turn
+    # switch scoring based on turn
     opp_piece = PLAYER
     if piece == PLAYER:
         opp_piece = AI
 
-    # Prioritise a winning move
-    # Minimax makes this less important
+    # prioritise a winning move
     if window.count(piece) == 4:
         score += 100
-    # Make connecting 3 second priority
+    # make connecting 3 second priority
     elif window.count(piece) == 3 and window.count(EMPTY) == 1:
         score += 5
-    # Make connecting 2 third priority
+    # make connecting 2 third priority
     elif window.count(piece) == 2 and window.count(EMPTY) == 2:
         score += 2
-    # Prioritise blocking an opponent's winning move (but not over bot winning)
-    # Minimax makes this less important
+    # prioritise blocking an opponent's winning move (but not over bot winning)
     if window.count(opp_piece) == 3 and window.count(EMPTY) == 1:
         score -= 4
 
@@ -248,18 +247,18 @@ def evaluate_window(window, piece):
 
 def is_terminal_node(board):
     return check_win_condition(board, PLAYER) or check_win_condition(board, AI) or len(get_valid_columns(board)) == 0
-"""
-Implements the Minimax algorithm with Alpha-Beta pruning to determine the optimal move 
-for the AI in a Connect Four game.
 
-board: The current state of the game board.
-depth: The depth of the search tree (how many moves ahead we are considering).
-alpha: The best value that the maximizer can guarantee so far.
-beta: The best value that the minimizer can guarantee so far.
-maximisingPlayer: A boolean indicating whether we are maximizing or minimizing the score (True for maximizing, False for minimizing).
+# Implements the Minimax algorithm with Alpha-Beta pruning to determine the optimal move 
+# for the AI in a Connect Four game.
 
-returns the best column and score found
-"""
+# board: The current state of the game board.
+# depth: The depth of the search tree (how many moves ahead we are considering).
+# alpha: The best value that the maximizer can guarantee so far.
+# beta: The best value that the minimizer can guarantee so far.
+# maximisingPlayer: A boolean indicating whether we are maximizing or minimizing the score (True for maximizing, False for minimizing).
+
+# returns the best column and score found
+
 def minimax(board, depth, alpha, beta, maximisingPlayer):
     #get all columns that are not full
     valid_locations = get_valid_columns(board)
@@ -269,48 +268,48 @@ def minimax(board, depth, alpha, beta, maximisingPlayer):
     if depth == 0 or is_terminal:
         #if the current state is terminal(meaning someone won or no valid moves left), then return a score based on the game outcome
         if is_terminal:
-            # Weight the bot winning really high
+            # weight the bot winning really high
             if check_win_condition(board, AI):
                 return (None, 9999999)
-            # Weight the human winning really low
+            # wight the human winning really low
             elif check_win_condition(board, PLAYER):
                 return (None, -9999999)
-            else:  # No more valid moves
+            else:  # no more valid moves
                 return (None, 0)
         # if it's not a terminal state but we reached the maximum depth, estimate the board's score
         # calls the score_position function to evaluate how good the board is for the AI.
         else:
             return (None, score_position(board, AI))
 
-    #If it is the maximizing player's turn (AI), the goal is to maximize the score:
+    #if it is the maximizing player's turn, the goal is to maximize the score:
     if maximisingPlayer:
         value = -9999999
-        # Randomise column to start
+        # randomise column to start
         column = random.choice(valid_locations)
-        #Iterates over each valid column, simulating a move.
+        #iterates over each valid column, simulating a move.
         for col in valid_locations:
-            # Create a copy of the board
+            # create a copy of the board
             b_copy = board.copy()
-            # Drop a piece in the temporary board and record score
+            # drop a piece in the temporary board and record score
             drop_move(b_copy, col, AI)
 
-            #Calls minimax recursively to evaluate the next state.
-            #Reduces the depth by 1.
-            #Switches to minimizing player for the next move.
+            #calls minimax recursively to evaluate the next state.
+            #reduces the depth by 1.
+            #switches to minimizing player for the next move.
             new_score = minimax(b_copy, depth - 1, alpha, beta, False)[1]
             #visualize_move_evaluation(col, new_score)  # Visualization
             #Update the best value and best column if the current move is better
             if new_score > value:
                 value = new_score
                 column = col
-            #Alpha is the best value the maximizer can achieve.
-            #If alpha >= beta, it means that the minimizing player would not allow this branch to be chosen, so we can prune (skip evaluating remaining columns).
+            #alpha is the best value the maximizer can achieve.
+            #if alpha >= beta, it means that the minimizing player would not allow this branch to be chosen, so we can prune.
             alpha = max(alpha, value)
             if alpha >= beta:
                 break
         return column, value
 
-    else:  # If it is the minimizing player's turn (Human), the goal is to minimize the score
+    else:  # if it is the minimizing player's turn, the goal is to minimize the score
         value = 9999999
         column = random.choice(valid_locations)
         for col in valid_locations:
@@ -321,17 +320,17 @@ def minimax(board, depth, alpha, beta, maximisingPlayer):
             if new_score < value:
                 value = new_score
                 column = col
-            #Beta is the best value the minimizer can achieve.
+            #beta is the best value the minimizer can achieve.
             beta = min(beta, value)
             if alpha >= beta:
                 break
         return column, value
 def play_ai_move_using_minimax(board):
-    # Determine the best move using the minimax algorithm
-    # depth = 7 is the most optimal
+    # determine the best move using the minimax algorithm
+    # depth = 7 is the most optimal. Decrease depth is ai speed is slow
     col, minimax_score = minimax(board, depth=6, alpha=-math.inf, beta=math.inf, maximisingPlayer=True)
 
-    # If a valid column was found, place the move
+    # if a valid column was found, place the move
     if col is not None and place_move(board, col, AI):
         print(f"AI placed move in column {col}")
         return True
